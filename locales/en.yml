@@ -70,6 +70,7 @@ tools:
     measurement: Measurement
     text: Text
     data: Data
+    campus: Campus
 
   password-strength-analyser:
     title: Password strength analyser
@@ -392,3 +393,55 @@ tools:
   text-to-binary:
     title: Text to ASCII binary
     description: Convert text to its ASCII binary representation and vice-versa.
+
+  campus-gap-assistant:
+    title: Campus free-time assistant
+    description: Add weekly classes, detect timetable conflicts, and find free periods for a selected week and day.
+    heading: Find a gap in your week
+    intro: Add your weekly classes to spot overlaps and find continuous free periods. Week parity and week ranges are supported.
+    privacy: Your timetable stays in this browser and is saved locally on this device.
+    week: Week number
+    day: Day
+    minimumFreePeriods: Minimum free length (periods)
+    conflictsFound: Timetable conflicts
+    noConflicts: No conflicts on this day
+    freeSlots: Free periods
+    weekNumber: Week {week}
+    noFreeSlots: No free block meets the selected minimum length.
+    addCourse: Add a course
+    courseName: Course name
+    courseNamePlaceholder: e.g. Calculus
+    startPeriod: First period
+    endPeriod: Last period
+    startWeek: First week
+    endWeek: Last week
+    weekPattern: Week pattern
+    addCourseButton: Add course
+    loadSample: Load example timetable
+    courseList: Courses
+    courseCount: '{count} courses'
+    emptyState: Add a course or load the example timetable to get started.
+    weeksRange: Weeks {start}–{end}
+    singlePeriod: Period {period}
+    periodRange: Periods {start}–{end}
+    remove: Remove
+    sampleMath: Calculus
+    sampleEnglish: English
+    sampleLab: Physics lab
+    days:
+      monday: Monday
+      tuesday: Tuesday
+      wednesday: Wednesday
+      thursday: Thursday
+      friday: Friday
+      saturday: Saturday
+      sunday: Sunday
+    patterns:
+      all: Every week
+      odd: Odd weeks
+      even: Even weeks
+    errors:
+      name: Enter a course name.
+      periods: The last period must be the same as or later than the first period.
+      weeks: The last week must be the same as or later than the first week.
+      weekPattern: No week in this range matches the selected pattern.

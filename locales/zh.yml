@@ -70,6 +70,7 @@ tools:
     measurement: '测量'
     text: '文本'
     data: '数据'
+    campus: '校园'
 
   password-strength-analyser:
     title: 密码强度分析仪
@@ -388,3 +389,55 @@ tools:
   text-to-binary:
     title: 文本到 ASCII 二进制
     description: 将文本转换为其 ASCII 二进制表示形式，反之亦然。
+
+  campus-gap-assistant:
+    title: 校园空档助手
+    description: 录入每周课表，检查课程冲突，并按周次和星期查找连续空闲时段。
+    heading: 找出一周里的空档
+    intro: 添加每周课程，检查时间重叠并查找连续空闲节次。支持单双周和起止周次。
+    privacy: 课表保存在本机浏览器中，不会上传。
+    week: 查询周次
+    day: 星期
+    minimumFreePeriods: 最少连续空闲节数
+    conflictsFound: 发现课程冲突
+    noConflicts: 这一天没有课程冲突
+    freeSlots: 可用空档
+    weekNumber: 第 {week} 周
+    noFreeSlots: 没有符合所选最短时长的空档。
+    addCourse: 添加课程
+    courseName: 课程名称
+    courseNamePlaceholder: 例如：高等数学
+    startPeriod: 开始节次
+    endPeriod: 结束节次
+    startWeek: 起始周
+    endWeek: 结束周
+    weekPattern: 上课周次
+    addCourseButton: 添加课程
+    loadSample: 加载示例课表
+    courseList: 已添加课程
+    courseCount: '{count} 门课程'
+    emptyState: 添加一门课程，或加载示例课表开始体验。
+    weeksRange: 第 {start}–{end} 周
+    singlePeriod: 第 {period} 节
+    periodRange: 第 {start}–{end} 节
+    remove: 删除
+    sampleMath: 高等数学
+    sampleEnglish: 大学英语
+    sampleLab: 物理实验
+    days:
+      monday: 星期一
+      tuesday: 星期二
+      wednesday: 星期三
+      thursday: 星期四
+      friday: 星期五
+      saturday: 星期六
+      sunday: 星期日
+    patterns:
+      all: 每周
+      odd: 单周
+      even: 双周
+    errors:
+      name: 请填写课程名称。
+      periods: 结束节次不能早于开始节次。
+      weeks: 结束周不能早于起始周。
+      weekPattern: 所选周次范围内没有符合单双周设置的上课周。
