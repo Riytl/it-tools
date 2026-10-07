@@ -1,133 +1,47 @@
-<picture>
-    <source srcset="./.github/logo-dark.png" media="(prefers-color-scheme: light)">
-    <source srcset="./.github/logo-white.png" media="(prefers-color-scheme: dark)">
-    <img src="./.github/logo-dark.png" alt="logo">
-</picture>
+# Campus Toolbox
 
-<p align="center">
-Useful tools for developer and people working in IT. <a href="https://it-tools.tech">Try it!</a>
-</p>
+Campus Toolbox adapts the open-source [IT-Tools](https://github.com/CorentinTh/it-tools) project for university students. It brings study, writing, and campus-life utilities together in one responsive web app.
 
-## Functionalities and roadmap
+## Tools
 
-Please check the [issues](https://github.com/CorentinTh/it-tools/issues) to see if some feature listed to be implemented.
+- Timetable conflicts and free periods
+- Grade averages and GPA conversion
+- Attendance allowance calculator
+- Exam, assignment, and campus-event planner
+- Association document-format checklist
+- Reference citation drafts for journals, books, and web pages (GB/T 7714 / APA templates; verify the result against the required edition)
+- Shared-expense splitter
+- Dorm chore rotation
 
-You have an idea of a tool? Submit a [feature request](https://github.com/CorentinTh/it-tools/issues/new/choose)!
+The tools run in the browser. Timetables, planner items, checklists, expenses, and rotations are saved in the current browser's local storage. GPA conversion bands and document checklist items can be adjusted to local rules. Verify results against official school and course requirements.
 
-## Self host
+## Product scope and evidence
 
-Self host solutions for your homelab
+This repository describes the implemented campus tools; it does not include student interview notes, trial results, or a comparison with similar web tools. Local browser use and the grouping of campus functions are implementation facts, not evidence that the product is more usable than alternatives. Avoid comparative usability claims until they are supported by student trials and task-based comparisons.
 
-**From docker hub:**
+To evaluate that claim later, ask students to complete the same campus tasks with this toolbox and a comparable existing tool. Record task completion, time, input errors, and brief user feedback, then report the participant count and test conditions with the results.
 
-```sh
-docker run -d --name it-tools --restart unless-stopped -p 8080:80 corentinth/it-tools:latest
-```
+The reference formatter produces drafts from the fields entered by the user. It does not automatically normalize author names or verify every requirement of a particular GB/T 7714 or APA edition, so users should check the generated citation against the required style guide and their department's rules.
 
-**From github packages:**
+## Visual design
 
-```sh
-docker run -d --name it-tools --restart unless-stopped -p 8080:80 ghcr.io/corentinth/it-tools:latest
-```
+The interface draws its navy, blue, crimson, and coral palette from [Shenzhen MSU-BIT University's published visual identity colors](https://www.smbu.edu.cn/sjxxsb/bz_xh.htm). The RGB values in `src/ui/theme/campus-palette.ts` are sampled from the school's online color chart for screen use. The toolbox uses its own layout and does not present itself as an official university service.
 
-**Other solutions:**
+## Development
 
-- [Cloudron](https://www.cloudron.io/store/tech.ittools.cloudron.html)
-- [Tipi](https://www.runtipi.io/docs/apps-available)
-- [Unraid](https://unraid.net/community/apps?q=it-tools)
-
-## Contribute
-
-### Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) with the following extensions:
-
-- [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur)
-- [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [i18n Ally](https://marketplace.visualstudio.com/items?itemName=lokalise.i18n-ally)
-
-with the following settings:
-
-```json
-{
-  "editor.formatOnSave": false,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "i18n-ally.localesPaths": ["locales", "src/tools/*/locales"],
-  "i18n-ally.keystyle": "nested"
-}
-```
-
-### Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
-
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
-
-### Project Setup
-
-```sh
+```bash
 pnpm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+To create a production build:
 
-```sh
+```bash
 pnpm build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## License and attribution
 
-```sh
-pnpm test
-```
+This project is based on IT-Tools and remains under the GNU GPL v3. Keep the original copyright and license notices when modifying or redistributing it. When distributing this browser app, provide the corresponding source for the modified version and its license information alongside the app. See [LICENSE](LICENSE) and the [GitHub repository](https://github.com/Riytl/it-tools).
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
-
-### Create a new tool
-
-To create a new tool, there is a script that generate the boilerplate of the new tool, simply run:
-
-```sh
-pnpm run script:create:tool my-tool-name
-```
-
-It will create a directory in `src/tools` with the correct files, and a the import in `src/tools/index.ts`. You will just need to add the imported tool in the proper category and develop the tool.
-
-## Contributors
-
-Big thanks to all the people who have already contributed!
-
-[![contributors](https://contrib.rocks/image?repo=corentinth/it-tools&refresh=1)](https://github.com/corentinth/it-tools/graphs/contributors)
-
-## Credits
-
-Coded with ❤️ by [Corentin Thomasset](https://corentin.tech?utm_source=it-tools&utm_medium=readme).
-
-This project is continuously deployed using [vercel.com](https://vercel.com).
-
-Contributor graph is generated using [contrib.rocks](https://contrib.rocks/preview?repo=corentinth/it-tools).
-
-<a href="https://www.producthunt.com/posts/it-tools?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-it&#0045;tools" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=345793&theme=light" alt="IT&#0032;Tools - Collection&#0032;of&#0032;handy&#0032;online&#0032;tools&#0032;for&#0032;devs&#0044;&#0032;with&#0032;great&#0032;UX | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-<a href="https://www.producthunt.com/posts/it-tools?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-it&#0045;tools" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=345793&theme=light&period=daily" alt="IT&#0032;Tools - Collection&#0032;of&#0032;handy&#0032;online&#0032;tools&#0032;for&#0032;devs&#0044;&#0032;with&#0032;great&#0032;UX | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-
-## License
-
-This project is under the [GNU GPLv3](LICENSE).
+The GPL and AGPL have different network-use terms. The GPL does not add the AGPL's source-offer requirement merely because a modified server program is hosted on a website. This project delivers JavaScript to visitors' browsers, so publishing a modified version of the app is distribution; make its corresponding source available under the GPL. See the GNU [GPL FAQ](https://www.gnu.org/licenses/gpl-faq.en.html#UnreleasedMods) for the distinction.

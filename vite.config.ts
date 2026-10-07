@@ -17,6 +17,7 @@ import svgLoader from 'vite-svg-loader';
 import { configDefaults } from 'vitest/config';
 
 const baseUrl = process.env.BASE_URL ?? '/';
+const basePath = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -57,32 +58,32 @@ export default defineConfig({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       manifest: {
-        name: 'IT Tools',
-        description: 'Aggregated set of useful tools for developers.',
+        name: 'Campus Toolbox',
+        description: 'Useful tools for university study and campus life.',
         display: 'standalone',
-        lang: 'fr-FR',
-        start_url: `${baseUrl}?utm_source=pwa&utm_medium=pwa`,
+        lang: 'zh-CN',
+        start_url: `${basePath}?utm_source=pwa&utm_medium=pwa`,
         orientation: 'any',
-        theme_color: '#18a058',
-        background_color: '#f1f5f9',
+        theme_color: '#032b74',
+        background_color: '#f3f6fb',
         icons: [
           {
-            src: '/favicon-16x16.png',
+            src: `${basePath}favicon-16x16.png`,
             type: 'image/png',
             sizes: '16x16',
           },
           {
-            src: '/favicon-32x32.png',
+            src: `${basePath}favicon-32x32.png`,
             type: 'image/png',
             sizes: '32x32',
           },
           {
-            src: '/android-chrome-192x192.png',
+            src: `${basePath}android-chrome-192x192.png`,
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/android-chrome-512x512.png',
+            src: `${basePath}android-chrome-512x512.png`,
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',

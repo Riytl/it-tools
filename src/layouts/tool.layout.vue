@@ -8,9 +8,10 @@ import FavoriteButton from '@/components/FavoriteButton.vue';
 import type { Tool } from '@/tools/tools.types';
 
 const route = useRoute();
+const { t } = useI18n();
 
 const head = computed<HeadObject>(() => ({
-  title: `${route.meta.name} - IT Tools`,
+  title: `${route.meta.name} - ${t('home.brand')}`,
   meta: [
     {
       name: 'description',
@@ -23,7 +24,6 @@ const head = computed<HeadObject>(() => ({
   ],
 }));
 useHead(head);
-const { t } = useI18n();
 
 const i18nKey = computed<string>(() => route.path.trim().replace('/', ''));
 const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, String(route.meta.name)));
@@ -92,8 +92,8 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
     .separator {
       width: 200px;
       height: 2px;
-      background: rgb(161, 161, 161);
-      opacity: 0.2;
+      background: #bd1b3e;
+      opacity: 0.85;
 
       margin: 10px 0;
     }

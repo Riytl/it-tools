@@ -295,8 +295,12 @@ function loadSample() {
 
 .privacy-note {
   margin: 0.75rem 0 0;
-  color: #16804a;
+  color: #032b74;
   font-size: 0.9rem;
+}
+
+:global(html.dark .privacy-note) {
+  color: #9dbbe1;
 }
 
 .query-controls,
