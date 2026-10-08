@@ -39,6 +39,14 @@ See [example CSV](examples/pdd/timetable.csv). The importer handles UTF-8 BOM, C
 
 Clock courses are stored under `campus-gap-assistant:clock-courses:v1`. No account or server is required; course names and uploaded CSV contents stay in the browser. This view describes one recurring weekly schedule; use the original **Period timetable** view for semester weeks and odd/even-week rules.
 
+### Project Development Department — requirement 2
+
+Set available hours separately for each weekday (default 08:00–22:00), a minimum free duration (default 30 minutes), and the maximum same-course break (default 10 minutes, configurable 0–60). Invalid settings hide results until corrected. Daily ranges and these settings persist locally under the `campus-gap-assistant:clock-*` prefix.
+
+Same-name classes on the same weekday with breaks no longer than the configured value are merged for both display and calculation. For example, Monday Calculus 09:00–09:45 and 09:55–10:40 becomes 09:00–10:40, so the 10-minute class break is not reported as free. Different courses are not merged across a real break. Removing a displayed block removes all its source sessions; CSV export retains the original session records.
+
+The algorithm uses integer minutes and half-open intervals `[start,end)`. It merges class sessions, clips occupied intervals to the available range, combines overlapping/touching occupied periods, then returns their complement. An empty day has the whole available range free; a fully occupied day has none. Sessions outside the range are ignored. With a one-minute minimum, every positive free interval is retained.
+
 ```bash
 pnpm install
 pnpm dev

@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { makeCampusId } from '../campus-text';
 import type { ClockCourse } from './timetable.service';
-import { TimetableInputError, courseKey, exportTimetableCsv, formatClockTime, makeClockCourse, parseTimetableCsv, renderWeekTimetable } from './timetable.service';
+import { TimetableInputError, courseKey, exportTimetableCsv, findDailyFreeSlots, formatClockTime, makeClockCourse, makeDailyWindow, mergeCourseSessions, parseTimetableCsv, renderWeekTimetable } from './timetable.service';
 import { useTimetableText } from './timetable.text';
 
 const text = useTimetableText();
@@ -15,12 +15,26 @@ const end = ref('09:45');
 const csv = ref('');
 const error = ref('');
 const success = ref('');
+const windowInputs = useStorage('campus-gap-assistant:clock-windows:v1', Array.from({ length: 7 }, (_, index) => ({ day: index + 1, start: '08:00', end: '22:00' })));
+const minimumMinutes = useStorage<number | null>('campus-gap-assistant:clock-minimum:v1', 30);
+const gapMinutes = useStorage<number | null>('campus-gap-assistant:clock-merge:v1', 10);
+const availability = computed(() => {
+  try { return windowInputs.value.map(window => makeDailyWindow(window.day, window.start, window.end)); }
+  catch { return undefined; }
+});
+const settingsValid = computed(() => availability.value?.length === 7
+  && minimumMinutes.value !== null && Number.isInteger(minimumMinutes.value) && minimumMinutes.value >= 1 && minimumMinutes.value <= 1440
+  && gapMinutes.value !== null && Number.isInteger(gapMinutes.value) && gapMinutes.value >= 0 && gapMinutes.value <= 60);
+const mergedCourses = computed(() => mergeCourseSessions(courses.value, settingsValid.value ? gapMinutes.value! : 0));
+const dailyFree = computed(() => settingsValid.value
+  ? availability.value!.map(window => ({ day: window.day, slots: findDailyFreeSlots(courses.value, window, minimumMinutes.value!, gapMinutes.value!) }))
+  : []);
 const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const days = computed(() => dayKeys.map(key => t(`tools.campus-gap-assistant.days.${key}`)));
 const dayOptions = computed(() => days.value.map((label, index) => ({ label, value: index + 1 })));
-const weekText = computed(() => renderWeekTimetable(courses.value, days.value, text('empty')));
+const weekText = computed(() => renderWeekTimetable(mergedCourses.value, days.value, text('empty')));
 const { copy, copied } = useClipboard({ source: weekText });
-const sortedCourses = computed(() => [...courses.value].sort((a, b) => a.day - b.day || a.startMinute - b.startMinute));
+const sortedCourses = mergedCourses;
 
 function showError(cause: unknown) {
   error.value = cause instanceof TimetableInputError
@@ -118,14 +132,43 @@ async function copyWeek() {
     </c-card>
 
     <c-card>
+      <h3>{{ text('availability') }}</h3>
+      <p class="muted">{{ text('availabilityHint') }}</p>
+      <div class="window-grid">
+        <div v-for="window in windowInputs" :key="window.day" class="window-row">
+          <strong>{{ days[window.day - 1] }}</strong>
+          <label>{{ text('start') }}<input v-model="window.start" class="time-input" inputmode="numeric" maxlength="5" :aria-label="`${days[window.day - 1]} ${text('start')}`"></label>
+          <label>{{ text('end') }}<input v-model="window.end" class="time-input" inputmode="numeric" maxlength="5" :aria-label="`${days[window.day - 1]} ${text('end')}`"></label>
+        </div>
+      </div>
+      <div class="rules-grid">
+        <label>{{ text('minimum') }}<n-input-number v-model:value="minimumMinutes" :min="1" :max="1440" :precision="0" /></label>
+        <label>{{ text('gap') }}<n-input-number v-model:value="gapMinutes" :min="0" :max="60" :precision="0" /></label>
+      </div>
+      <p class="muted">{{ text('mergeHint') }}</p>
+      <n-alert v-if="!settingsValid" type="error" role="alert">{{ text('err_settings') }}</n-alert>
+    </c-card>
+
+    <c-card v-if="settingsValid">
+      <h3>{{ text('dailyFree') }}</h3>
+      <div class="week-grid">
+        <section v-for="result in dailyFree" :key="result.day" class="day-card">
+          <h4>{{ days[result.day - 1] }}</h4>
+          <div class="slot-list"><n-tag v-for="slot in result.slots" :key="slot.startMinute" type="success">{{ formatClockTime(slot.startMinute) }}–{{ formatClockTime(slot.endMinute) }} · {{ slot.endMinute - slot.startMinute }} {{ text('minutes') }}</n-tag></div>
+          <p v-if="!result.slots.length" class="muted">{{ text('noFree') }}</p>
+        </section>
+      </div>
+    </c-card>
+
+    <c-card>
       <div class="section-heading"><h3>{{ text('week') }}</h3><c-button @click="copyWeek">{{ copied ? text('copied') : text('copy') }}</c-button></div>
       <div class="week-grid">
         <section v-for="(label, index) in days" :key="label" class="day-card">
           <h4>{{ label }}</h4>
           <p v-if="!sortedCourses.some(course => course.day === index + 1)" class="muted">{{ text('empty') }}</p>
           <div v-for="course in sortedCourses.filter(item => item.day === index + 1)" :key="course.id" class="course-row">
-            <div><strong>{{ course.name }}</strong><span>{{ formatClockTime(course.startMinute) }}–{{ formatClockTime(course.endMinute) }}</span></div>
-            <c-button size="small" @click="courses = courses.filter(item => item.id !== course.id)">{{ text('remove') }}</c-button>
+            <div><strong>{{ course.name }}</strong><span>{{ formatClockTime(course.startMinute) }}–{{ formatClockTime(course.endMinute) }}</span><small v-if="course.sourceIds.length > 1">{{ course.sourceIds.length }} {{ text('merged') }}</small></div>
+            <c-button size="small" @click="courses = courses.filter(item => !course.sourceIds.includes(item.id))">{{ text('removeBlock') }}</c-button>
           </div>
         </section>
       </div>
@@ -155,5 +198,10 @@ label { display: grid; gap: 7px; font-size: 13px; }
 .course-row { display: flex; gap: 10px; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #a9b9d033; }
 .course-row div { min-width: 0; } .course-row strong { display: block; overflow-wrap: anywhere; } .course-row span { display: block; margin-top: 4px; opacity: .65; font-size: 13px; }
 .text-view { margin-top: 18px; font-family: monospace; }
+.window-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.window-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: center; border-bottom: 1px solid #a9b9d033; padding: 8px 0; }
+.rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.slot-list { display: flex; flex-wrap: wrap; gap: 8px; } .course-row small { color: #a45b1d; }
+@media(max-width: 700px) { .window-grid, .rules-grid { grid-template-columns: 1fr; } }
 @media(max-width: 700px) { .clock-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .name-field { grid-column: span 2; } .week-grid { grid-template-columns: 1fr; } .clock-hero { padding: 20px; } .clock-hero h2 { font-size: 23px; } }
 </style>
