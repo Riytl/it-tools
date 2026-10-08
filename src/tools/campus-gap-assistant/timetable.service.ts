@@ -40,7 +40,7 @@ export function makeClockCourse(input: { name: string, day: string | number, sta
   if (!name || name.length > 100) throw new TimetableInputError('name');
   const rawDay = String(input.day).trim().toLowerCase();
   const day = dayAliases[rawDay] ?? (/^[1-7]$/.test(rawDay) ? Number(rawDay) : 0);
-  if (!day) throw new TimetableInputError('day');
+  if (!Number.isInteger(day) || day < 1 || day > 7) throw new TimetableInputError('day');
   const startMinute = parseClockTime(input.start.trim());
   const endMinute = parseClockTime(input.end.trim(), true);
   if (endMinute <= startMinute) throw new TimetableInputError('order');
