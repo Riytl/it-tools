@@ -419,7 +419,7 @@ tools:
 
   campus-gap-assistant:
     title: Campus free-time assistant
-    description: Add weekly classes, detect timetable conflicts, and find free periods for a selected week and day.
+    description: Enter or import CSV timetables, find daily gaps and shared free time, or query period schedules by week parity.
     heading: Find a gap in your week
     intro: Add your weekly classes to spot overlaps and find continuous free periods. Week parity and week ranges are supported.
     privacy: Your timetable stays in this browser and is saved locally on this device.

@@ -415,7 +415,7 @@ tools:
 
   campus-gap-assistant:
     title: 校园空档助手
-    description: 录入每周课表，检查课程冲突，并按周次和星期查找连续空闲时段。
+    description: 手动录课或导入 CSV，计算每天空档和多人共同空闲时间，也支持节次课表的单双周查询。
     heading: 找出一周里的空档
     intro: 添加每周课程，检查时间重叠并查找连续空闲节次。支持单双周和起止周次。
     privacy: 课表保存在本机浏览器中，不会上传。

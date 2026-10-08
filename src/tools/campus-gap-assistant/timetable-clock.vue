@@ -193,7 +193,8 @@ async function copyWeek() {
     </c-card>
 
     <c-card>
-      <h3>{{ text('csvTitle') }}</h3>
+      <details>
+      <summary>{{ text('csvTitle') }}</summary>
       <p class="muted">{{ text('csvHint') }}</p>
       <div class="actions">
         <label class="file-button">{{ text('choose') }}<input type="file" accept=".csv,text/csv" class="visually-hidden" @change="readCsv"></label>
@@ -203,10 +204,12 @@ async function copyWeek() {
       <label class="csv-input">{{ text('paste') }}<n-input v-model:value="csv" type="textarea" :autosize="{ minRows: 3, maxRows: 8 }" placeholder="name,day,start,end" /></label>
       <c-button type="primary" @click="importCsv">{{ text('import') }}</c-button>
       <n-alert v-if="success" type="success" class="notice" role="status">{{ success }}</n-alert>
+      </details>
     </c-card>
 
     <c-card>
-      <h3>{{ text('availability') }}</h3>
+      <details>
+      <summary>{{ text('availability') }}</summary>
       <p class="muted">{{ text('availabilityHint') }}</p>
       <div class="window-grid">
         <div v-for="window in windowInputs" :key="window.day" class="window-row">
@@ -220,6 +223,7 @@ async function copyWeek() {
         <label>{{ text('gap') }}<n-input-number v-model:value="gapMinutes" :min="0" :max="60" :precision="0" /></label>
       </div>
       <p class="muted">{{ text('mergeHint') }}</p>
+      </details>
       <n-alert v-if="!settingsValid" type="error" role="alert">{{ text('err_settings') }}</n-alert>
     </c-card>
 
@@ -271,6 +275,7 @@ async function copyWeek() {
 .clock-hero p { margin: 8px 0 12px; opacity: .9; }
 .clock-hero small { opacity: .75; }
 .eyebrow { letter-spacing: .14em; font-size: 11px; }
+summary { cursor: pointer; font-weight: 600; font-size: 17px; padding: 4px 0; } details[open] summary { margin-bottom: 14px; }
 h3 { margin: 0 0 14px; font-size: 17px; } h4 { margin: 0 0 10px; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; } .section-heading h3 { margin: 0; }
 .clock-form { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 14px; align-items: end; }
