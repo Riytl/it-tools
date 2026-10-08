@@ -33,7 +33,7 @@ function nextMonday() {
       <div class="form-grid">
         <n-form-item :label="text('宿舍成员（每行一人）', 'Residents (one per line)')"><n-input v-model:value="membersText" type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" /></n-form-item>
         <n-form-item :label="text('值日任务（每行一项）', 'Chores (one per line)')"><n-input v-model:value="tasksText" type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" /></n-form-item>
-        <n-form-item :label="text('开始日期', 'Start date')"><n-input v-model:value="startDate" type="date" /></n-form-item>
+        <n-form-item :label="text('开始日期', 'Start date')"><input v-model="startDate" type="date" class="date-input"></n-form-item>
         <n-form-item :label="text('生成周数', 'Number of weeks')"><n-input-number v-model:value="weeks" :min="1" :max="52" :precision="0" w-full /></n-form-item>
       </div>
     </c-card>
@@ -54,6 +54,7 @@ function nextMonday() {
 .campus-tool h2 { margin: 0; font-size: 1.1rem; }
 .campus-tool p { opacity: .75; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 1rem; }
+.date-input { box-sizing: border-box; width: 100%; height: 34px; padding: 6px 10px; border: 1px solid #8885; border-radius: 4px; background: transparent; color: inherit; font: inherit; }
 .schedule { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
 .schedule section { border: 1px solid #8883; border-radius: 8px; padding: .75rem; }
 .schedule h3 { display: flex; justify-content: space-between; gap: .5rem; margin: 0 0 .5rem; font-size: 1rem; }

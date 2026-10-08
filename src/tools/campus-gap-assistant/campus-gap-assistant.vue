@@ -2,8 +2,11 @@
 import { useI18n } from 'vue-i18n';
 import type { Course, WeekPattern } from './campus-gap-assistant.service';
 import { findCourseConflicts, findFreeSlots } from './campus-gap-assistant.service';
+import TimetableClock from './timetable-clock.vue';
+import { useTimetableText } from './timetable.text';
 
 const { t } = useI18n();
+const clockText = useTimetableText();
 
 const courses = useStorage<Course[]>('campus-gap-assistant:courses', []);
 const selectedWeek = ref(1);
@@ -155,6 +158,11 @@ function loadSample() {
 
 <template>
   <div class="campus-gap-assistant">
+    <n-tabs type="line" animated>
+      <n-tab-pane name="clock" :tab="clockText('clockMode')">
+        <TimetableClock />
+      </n-tab-pane>
+      <n-tab-pane name="period" :tab="clockText('periodMode')">
     <c-card mb-4>
       <h2 class="section-title">
         {{ t('tools.campus-gap-assistant.heading') }}
@@ -270,6 +278,8 @@ function loadSample() {
         </li>
       </ul>
     </c-card>
+      </n-tab-pane>
+    </n-tabs>
   </div>
 </template>
 

@@ -29,6 +29,16 @@ The interface draws its navy, blue, crimson, and coral palette from [Shenzhen MS
 
 ## Development
 
+### Project Development Department — requirement 1
+
+Open `/campus-gap-assistant` and select **Clock timetable / 时刻课表**. Add a course with a weekday and `HH:mm` times, or import/paste a UTF-8 CSV. The weekly timetable lists Monday through Sunday and provides a copyable text view. The existing period timetable keeps its separate storage and week-parity settings.
+
+CSV must contain exactly four headers, in any order: `课程名,星期几,开始时间,结束时间` or `name,day,start,end`. Weekdays accept 1–7 (Monday–Sunday), Chinese weekday labels, or English weekday names. Times require two-digit hours and minutes; `24:00` is permitted only as an end time. Overnight courses must be split by day.
+
+See [example CSV](examples/pdd/timetable.csv). The importer handles UTF-8 BOM, CRLF, quoted commas, escaped quotes, and quoted newlines. It validates all records before appending anything, reports the CSV record containing an error, and skips exact duplicate classes. Files are limited to 1 MB and 1000 records. Download an example or export the active timetable from the page.
+
+Clock courses are stored under `campus-gap-assistant:clock-courses:v1`. No account or server is required; course names and uploaded CSV contents stay in the browser. This view describes one recurring weekly schedule; use the original **Period timetable** view for semester weeks and odd/even-week rules.
+
 ```bash
 pnpm install
 pnpm dev

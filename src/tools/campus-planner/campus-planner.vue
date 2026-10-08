@@ -57,7 +57,7 @@ function loadSample() {
       <div class="form-grid">
         <n-form-item :label="text('事项名称', 'Title')"><n-input v-model:value="title" :placeholder="text('例如：数据结构考试', 'e.g. Data structures exam')" @keyup.enter="addItem" /></n-form-item>
         <n-form-item :label="text('类型', 'Type')"><n-select v-model:value="category" :options="categoryOptions" /></n-form-item>
-        <n-form-item :label="text('日期', 'Date')"><n-input v-model:value="dueDate" type="date" /></n-form-item>
+        <n-form-item :label="text('日期', 'Date')"><input v-model="dueDate" type="date" class="date-input"></n-form-item>
       </div>
       <p v-if="error" class="error-text">{{ error }}</p>
       <div class="actions">
@@ -86,6 +86,7 @@ function loadSample() {
 .campus-tool h2 { margin: 0; font-size: 1.1rem; }
 .campus-tool p { opacity: .75; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 1rem; }
+.date-input { box-sizing: border-box; width: 100%; height: 34px; padding: 6px 10px; border: 1px solid #8885; border-radius: 4px; background: transparent; color: inherit; font: inherit; }
 .actions { display: flex; gap: .5rem; }
 .rows { list-style: none; padding: 0; margin: 0; }
 .rows li { display: flex; align-items: center; gap: .75rem; border-bottom: 1px solid #8883; padding: .75rem 0; }
