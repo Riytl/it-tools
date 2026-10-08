@@ -1,13 +1,27 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { makeCampusId } from '../campus-text';
-import type { ClockCourse } from './timetable.service';
-import { TimetableInputError, courseKey, exportTimetableCsv, findDailyFreeSlots, formatClockTime, makeClockCourse, makeDailyWindow, mergeCourseSessions, parseTimetableCsv, renderWeekTimetable } from './timetable.service';
+import type { ClockCourse, TimetableParticipant } from './timetable.service';
+import { TimetableInputError, courseKey, exportTimetableCsv, findCommonFreeSlots, findDailyFreeSlots, formatClockTime, makeClockCourse, makeDailyWindow, mergeCourseSessions, parseTimetableCsv, renderWeekTimetable } from './timetable.service';
 import { useTimetableText } from './timetable.text';
 
 const text = useTimetableText();
 const { t } = useI18n();
-const courses = useStorage<ClockCourse[]>('campus-gap-assistant:clock-courses:v1', []);
+const legacyClockCourses = useStorage<ClockCourse[]>('campus-gap-assistant:clock-courses:v1', []);
+const participants = useStorage<TimetableParticipant[]>('campus-gap-assistant:clock-people:v1', [{ id: 'self', name: text('me'), courses: legacyClockCourses.value.map(course => ({ ...course })), confirmed: legacyClockCourses.value.length > 0 }]);
+const selectedPerson = useStorage('campus-gap-assistant:clock-selected-person:v1', 'self');
+const personName = ref('');
+const currentParticipant = computed(() => participants.value.find(person => person.id === selectedPerson.value) ?? participants.value[0]);
+const courses = computed<ClockCourse[]>({
+  get: () => currentParticipant.value?.courses ?? [],
+  set: (value) => {
+    if (currentParticipant.value) {
+      currentParticipant.value.courses = value;
+      currentParticipant.value.confirmed = value.length > 0;
+    }
+  },
+});
+const commonDay = ref(0);
 const name = ref('');
 const day = ref(1);
 const start = ref('09:00');
@@ -29,12 +43,53 @@ const mergedCourses = computed(() => mergeCourseSessions(courses.value, settings
 const dailyFree = computed(() => settingsValid.value
   ? availability.value!.map(window => ({ day: window.day, slots: findDailyFreeSlots(courses.value, window, minimumMinutes.value!, gapMinutes.value!) }))
   : []);
+const groupReady = computed(() => participants.value.length >= 2 && participants.value.every(person => person.confirmed));
+const commonFree = computed(() => groupReady.value && settingsValid.value
+  ? findCommonFreeSlots(participants.value.map(person => person.courses), availability.value!, minimumMinutes.value!, gapMinutes.value!)
+  : []);
+const filteredCommon = computed(() => commonFree.value.filter(slot => commonDay.value === 0 || slot.day === commonDay.value));
 const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const days = computed(() => dayKeys.map(key => t(`tools.campus-gap-assistant.days.${key}`)));
 const dayOptions = computed(() => days.value.map((label, index) => ({ label, value: index + 1 })));
 const weekText = computed(() => renderWeekTimetable(mergedCourses.value, days.value, text('empty')));
 const { copy, copied } = useClipboard({ source: weekText });
 const sortedCourses = mergedCourses;
+const commonText = computed(() => filteredCommon.value.map(slot => `${days.value[slot.day - 1]} ${formatClockTime(slot.startMinute)}–${formatClockTime(slot.endMinute)} (${slot.endMinute - slot.startMinute} ${text('minutes')})`).join('\n'));
+const commonClipboard = useClipboard({ source: commonText });
+
+function addPerson() {
+  const value = personName.value.trim();
+  if (!value || value.length > 40 || participants.value.length >= 20 || participants.value.some(person => person.name.toLowerCase() === value.toLowerCase())) {
+    error.value = text('err_person'); return;
+  }
+  const id = makeCampusId('person');
+  participants.value.push({ id, name: value, courses: [], confirmed: false });
+  selectedPerson.value = id; personName.value = ''; error.value = ''; success.value = '';
+}
+
+function selectPerson(id: string) { selectedPerson.value = id; error.value = ''; success.value = ''; name.value = ''; csv.value = ''; }
+
+function removePerson(id: string) {
+  if (participants.value.length <= 1 || !window.confirm(text('removeConfirm'))) return;
+  participants.value = participants.value.filter(person => person.id !== id);
+  if (selectedPerson.value === id) selectPerson(participants.value[0].id);
+}
+
+function loadGroupExample() {
+  if (participants.value.length > 1 || courses.value.length || currentParticipant.value?.confirmed) return;
+  const example = [
+    { name: text('me'), csv: 'name,day,start,end\nCalculus,1,09:00,09:45\nCalculus,1,09:55,10:40\nEnglish,2,13:00,14:30' },
+    { name: 'Alex', csv: 'name,day,start,end\nLab,1,10:00,12:00\nSeminar,3,16:00,17:00' },
+    { name: 'Mira', csv: 'name,day,start,end\nPE,1,14:00,15:30\nMath,2,10:00,11:30' },
+  ];
+  participants.value = example.map(person => ({ id: makeCampusId('person'), name: person.name, courses: parseTimetableCsv(person.csv).map(course => ({ ...course, id: makeCampusId('clock') })), confirmed: true }));
+  selectedPerson.value = participants.value[0].id; error.value = ''; success.value = '';
+}
+
+async function copyCommon() {
+  try { await commonClipboard.copy(commonText.value); }
+  catch { error.value = text('err_copy'); }
+}
 
 function showError(cause: unknown) {
   error.value = cause instanceof TimetableInputError
@@ -107,7 +162,26 @@ async function copyWeek() {
     <n-alert v-if="error" type="error" role="alert">{{ error }}</n-alert>
 
     <c-card>
-      <div class="section-heading"><h3>{{ text('entry') }}</h3><n-tag type="info">{{ courses.length }} {{ text('count') }}</n-tag></div>
+      <h3>{{ text('people') }}</h3>
+      <p class="muted">{{ text('peopleHint') }}</p>
+      <div class="people-list">
+        <div v-for="person in participants" :key="person.id" class="person-card" :class="{ active: currentParticipant?.id === person.id }">
+          <button class="person-select" :aria-pressed="currentParticipant?.id === person.id" @click="selectPerson(person.id)"><strong>{{ person.name }}</strong><span>{{ person.courses.length }} {{ text('count') }} · {{ person.confirmed ? text('confirmed') : text('pending') }}</span></button>
+          <c-button v-if="participants.length > 1" size="small" @click="removePerson(person.id)">{{ text('removePerson') }}</c-button>
+        </div>
+      </div>
+      <form class="person-form" @submit.prevent="addPerson">
+        <label>{{ text('personName') }}<n-input v-model:value="personName" :placeholder="text('personPlaceholder')" :maxlength="40" /></label>
+        <button type="submit" class="primary-button">{{ text('addPerson') }}</button>
+      </form>
+      <div class="actions">
+        <c-button v-if="!courses.length && currentParticipant && !currentParticipant.confirmed" @click="currentParticipant.confirmed = true">{{ text('confirmEmpty') }}</c-button>
+        <c-button v-if="participants.length === 1 && !courses.length && !currentParticipant?.confirmed" @click="loadGroupExample">{{ text('groupSample') }}</c-button>
+      </div>
+    </c-card>
+
+    <c-card>
+      <div class="section-heading"><h3>{{ text('entry') }} · {{ currentParticipant?.name }}</h3><n-tag type="info">{{ courses.length }} {{ text('count') }}</n-tag></div>
       <form class="clock-form" @submit.prevent="addCourse">
         <label class="name-field">{{ text('name') }}<n-input v-model:value="name" :placeholder="text('placeholder')" :maxlength="100" /></label>
         <label>{{ text('day') }}<n-select v-model:value="day" :options="dayOptions" /></label>
@@ -147,6 +221,19 @@ async function copyWeek() {
       </div>
       <p class="muted">{{ text('mergeHint') }}</p>
       <n-alert v-if="!settingsValid" type="error" role="alert">{{ text('err_settings') }}</n-alert>
+    </c-card>
+
+    <c-card v-if="settingsValid" class="common-card">
+      <div class="section-heading"><h3>{{ text('common') }}</h3><c-button v-if="filteredCommon.length" @click="copyCommon">{{ commonClipboard.copied.value ? text('copied') : text('copyCommon') }}</c-button></div>
+      <p class="muted">{{ text('commonHint') }}</p>
+      <n-alert v-if="!groupReady" type="info">{{ text('commonPending') }}</n-alert>
+      <template v-else>
+        <label class="day-filter">{{ text('filterDay') }}<n-select v-model:value="commonDay" :options="[{ label: text('allDays'), value: 0 }, ...dayOptions]" /></label>
+        <ol class="common-list">
+          <li v-for="(slot, index) in filteredCommon" :key="`${slot.day}-${slot.startMinute}`"><span class="rank">{{ index + 1 }}</span><div><strong>{{ days[slot.day - 1] }}</strong><span>{{ formatClockTime(slot.startMinute) }}–{{ formatClockTime(slot.endMinute) }}</span></div><n-tag type="success">{{ slot.endMinute - slot.startMinute }} {{ text('minutes') }}</n-tag></li>
+        </ol>
+        <p v-if="!filteredCommon.length" class="muted">{{ text('noCommon') }}</p>
+      </template>
     </c-card>
 
     <c-card v-if="settingsValid">
@@ -202,6 +289,15 @@ label { display: grid; gap: 7px; font-size: 13px; }
 .window-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: center; border-bottom: 1px solid #a9b9d033; padding: 8px 0; }
 .rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
 .slot-list { display: flex; flex-wrap: wrap; gap: 8px; } .course-row small { color: #a45b1d; }
+.people-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.person-card { display: flex; align-items: center; gap: 12px; border: 1px solid #a9b9d066; border-radius: 10px; padding: 10px 12px; }
+.person-card.active { border-color: #325d9b; background: #325d9b10; }
+.person-select { display: grid; gap: 4px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.person-select span { opacity: .65; font-size: 12px; } .person-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 16px; } .person-form label { flex: 1; min-width: 160px; }
+.common-card { border-top: 3px solid #bd1b3e; } .day-filter { max-width: 220px; margin: 16px 0; }
+.common-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.common-list li { display: flex; gap: 14px; align-items: center; border-bottom: 1px solid #a9b9d033; padding: 10px 0; } .common-list li > div { display: grid; gap: 3px; flex: 1; } .common-list li > div span { opacity: .7; }
+.rank { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #325d9b12; color: #325d9b; font-size: 12px; }
 @media(max-width: 700px) { .window-grid, .rules-grid { grid-template-columns: 1fr; } }
 @media(max-width: 700px) { .clock-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .name-field { grid-column: span 2; } .week-grid { grid-template-columns: 1fr; } .clock-hero { padding: 20px; } .clock-hero h2 { font-size: 23px; } }
 </style>

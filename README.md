@@ -47,6 +47,22 @@ Same-name classes on the same weekday with breaks no longer than the configured 
 
 The algorithm uses integer minutes and half-open intervals `[start,end)`. It merges class sessions, clips occupied intervals to the available range, combines overlapping/touching occupied periods, then returns their complement. An empty day has the whole available range free; a fully occupied day has none. Sessions outside the range are ignored. With a one-minute minimum, every positive free interval is retained.
 
+### Project Development Department — requirement 3
+
+Add participants, select one, and manually enter or import that person's timetable. Up to 20 people are supported. Each person's timetable stays separate. A new, empty timetable is **unconfirmed**: it cannot silently contribute a full day of availability. Enter courses or explicitly confirm **No classes this week** before calculating common time. Removing a participant asks for confirmation. A three-person example is available while the initial timetable is empty.
+
+Common free time intersects every participant's daily free intervals under the same configurable daily available ranges. Results sort by duration descending, then weekday and start time ascending. The weekday filter preserves that ordering. You can copy the filtered results as text. There is no booking, messaging, or calendar synchronization.
+
+Participant data is stored under `campus-gap-assistant:clock-people:v1`. On first use, the requirement-1 clock timetable is copied into the first participant; its old `clock-courses:v1` storage is retained. Participant selection, daily windows, minimum duration and course-break settings also persist locally. The original period timetable is unchanged.
+
+#### Manual acceptance examples
+
+- Import `examples/pdd/timetable.csv`: Monday's Calculus sessions display as 09:00–10:40 with a 10-minute merge setting. With minimum 1, no 09:45–09:55 free slot appears. Set merge to 0 to show that break.
+- Use available hours 08:00–22:00. An empty day returns 08:00–22:00; a class spanning the whole range returns no gap. Overlapping classes, courses touching at an endpoint, and classes outside the range must not create false gaps.
+- Load the three-person example and filter common results to Monday: 15:30–22:00 (390 min), 12:00–14:00 (120 min), 08:00–09:00 (60 min), in that order. Add an unconfirmed person: common results are withheld until their timetable is provided or explicitly confirmed empty.
+- Import an invalid end-before-start record: the error identifies its CSV record and no part of that import is appended. Reimporting an identical file does not add duplicates. Refresh to check persistence; compare Chinese, English and Russian interfaces.
+- PRs are divided by the three requirements: input/CSV and weekly text, daily gaps and class merging, multi-person common gaps. Each PR adds its matching README section.
+
 ```bash
 pnpm install
 pnpm dev
