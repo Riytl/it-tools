@@ -40,15 +40,25 @@ export function calculateSettlements(participants: ExpenseParticipant[], expense
 
     const included = includedNames.map(name => participants.find(person => person.name === name)!);
     const totalCents = Math.round(expense.amount * 100);
-    const totalWeight = included.reduce((sum, person) => sum + person.weight, 0);
-    let assignedCents = 0;
-
-    included.forEach((person, index) => {
-      const share = index === included.length - 1
-        ? totalCents - assignedCents
-        : Math.floor(totalCents * person.weight / totalWeight);
-      assignedCents += share;
-      balances.set(person.name, (balances.get(person.name) ?? 0) - share);
+    if (!Number.isSafeInteger(totalCents) || totalCents < 1) {
+      return undefined;
+    }
+    // Scale weights to keep their sum finite, then allocate whole cents using
+    // the largest fractional remainders. Equal remainders use participant order.
+    const largestWeight = included.reduce((largest, person) => Math.max(largest, person.weight), 0);
+    const totalWeight = included.reduce((sum, person) => sum + person.weight / largestWeight, 0);
+    const shares = included.map((person, index) => {
+      const exact = totalCents * ((person.weight / largestWeight) / totalWeight);
+      const cents = Math.floor(exact);
+      return { person, index, cents, remainder: exact - cents };
+    });
+    const remainingCents = totalCents - shares.reduce((sum, share) => sum + share.cents, 0);
+    [...shares]
+      .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+      .slice(0, remainingCents)
+      .forEach(share => share.cents++);
+    shares.forEach(({ person, cents }) => {
+      balances.set(person.name, (balances.get(person.name) ?? 0) - cents);
     });
 
     balances.set(expense.payer, (balances.get(expense.payer) ?? 0) + totalCents);
